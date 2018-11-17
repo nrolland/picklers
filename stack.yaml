@@ -36,8 +36,6 @@ packages:
 # These entries can reference officially published versions as well as
 # forks / in-progress versions pinned to a git hash. For example:
 #
-extra-deps:
- - haddock-api-2.21.0@sha256:3c03de46f7395931e210e07f5d8576738bbfeb482d76d88959a70afc74df2489,5715
 
 # - acme-missiles-0.3
 # - git: https://github.com/commercialhaskell/stack.git

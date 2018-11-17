@@ -1,6 +1,6 @@
 module SCorePickle (PU, pickle, unpickle, lift, sequ, base, belowBase, useState, toOctet) where
 
-type St s = ([Char], s)
+type St s = ([Char], s)  -- stream and state
 data PU a p = PU { appP :: (a,St p) -> St p,
                    appU :: St p -> (a,St p) }
 

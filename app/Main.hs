@@ -98,7 +98,7 @@ k = Lam("x", Lam("y", x))
 kki = App(k, App(k, i))
 kki' = App (Lam ("x",Lam ("y",Var "x")),App (Lam ("x",Lam ("y",Var "x")),Lam ("x",Var "x")))
 
-bitl = pickle   plambda kki --  [2,1,1,'x',1,1,'y',0,1,'x',2,1,1,'x',1,1,'y',0,1,'x',1,1,'y',0,1,'x']
+bitl = pickle   plambda kki --  [2,1,1,'x',1,1,'y',0,1,'x',2,1,1,'x',1,1,'y',0,1,'x',1,1,'x',0,1,'x']
 l    = unpickle plambda bitl
 
 
@@ -109,7 +109,7 @@ l    = unpickle plambda bitl
 
 psurl = S.wrap (\ (pr,h,po,f) -> URL {protocol=pr, host=h, port=po, file=f},
                 \ URL {protocol=pr,host=h,port=po,file=f} -> (pr,h,po,f))
-        (S.quad S.string S.string (S.pMaybe S.nat) S.string)
+               (S.quad S.string S.string (S.pMaybe S.nat) S.string)
 
 psbookmark :: S.PU Bookmark [a]
 psbookmark = S.alt tag [S.wrap (Link,   \(Link   a) -> a) (S.pair S.string psurl),
@@ -126,7 +126,7 @@ sbits1 = CorePickle.pickle pbookmarks brepeat
 sbits2 = S.pickle psbookmarks [] brepeat
 
 su = S.unpickle psbookmarks [] sbits2
-su' = S.unpickle psbookmark sbits2
+su' = S.unpickle psbookmark [] sbits2
 
 
 
@@ -145,6 +145,7 @@ slambda = S.share (S.alt tag [ S.wrap (Var, \(Var x) -> x) S.string,
 
 -- kki = App (Lam ("x",Lam ("y",Var "x")),App (Lam ("x",Lam ("y",Var "x")),Lam ("x",Var "x")))
 
+                                  --  [2,1,1,'x',1,1,'y',0,1,'x',2,1,1,'x',1,1,'y',0,1,'x',1,1,'x',0,1,'x']
 bitls = S.pickle   slambda [] kki --  [2,1,1,'x',1,1,'y',0,1,'x',0,2,3,0,1,1,'x',1]
 l'    = S.unpickle slambda [] bitls
 
@@ -155,7 +156,7 @@ l'    = S.unpickle slambda [] bitls
 -- 00 01 78                   1 Var "x")),   -- tag de Var, longueur de chaine, 'x'
 -- 00
 --    02                5 App(                --
---    03                       k,               -- 3 au dessus de 2
+--    03                       k,
 --    00
 --       01 01 78             4 Lam("x",
 --       01                          x)))

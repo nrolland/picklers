@@ -89,7 +89,7 @@ memoFixedList dict pa n = sequ head (tokenize dict pa) (\x ->  -- projette head,
                           lift (x:xs)))
 
 memoList ::Eq a =>  [a] -> PU a s -> PU [a] s
-memoList dict = sequ length nat . memoFixedList dict
+memoList dict = sequ length nat . memoFixedList dict --  [a] -> PU a s  -> PU [a] s
 
 share :: Eq a => PU a [a] -> PU a [a]
 share p = useState add (\dict -> tokenize dict p)-- pickler parametre
