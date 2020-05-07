@@ -1,16 +1,72 @@
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, StandaloneDeriving  #-}
 
 module Main where
 
-import Lib
 import Pickle
 import CorePickle
 import qualified SPickle as S
+import Debug.Trace
+
+-- Serializing a structure
+---------------------------
 
 
--- A simple pickler
+-- I declare a new type of structure, called Tree, which has 2 values, Leaf and Node 
+data Tree = Leaf | Node Tree Tree -- a Node contains 2 subtrees
+
+deriving instance Show Tree
+
+
+--this is a value of type Tree
+atree :: Tree
+atree = Node (Node Leaf Leaf) Leaf
+
+-- how do I transmit such a value ? I encode it and decode it
+encode :: Tree -> String
+encode Leaf = "0"
+encode (Node l r) = "1" ++ encode l ++ encode r
+-- encode atree
+--"11000"
+
+decode :: String -> Tree
+decode s = go s fst 
+      where 
+            go :: String -> ((Tree,String)->Tree) -> Tree
+            go ('0':s) k = k(Leaf,s)
+            go ('1':s) k = go s  (\(l, s') ->
+                           go s' (\(r, s'') -> 
+                           k(Node l r, s'')))
+            go _ _ = trace "pb" undefined
+
+-- PS : imperatif : on met les noeuds dans une pile. quand on rencontre arbre fini, on complete les structures en attente, gauche on replace, droit on remonte la pile
+
+
+-- We want a generic solution instead of a hard coded one to this problem
+
+
+
+-- Pickler
 --------------------
 
+-- pickle :: PU a -> a -> String
+-- unpickle :: PU a -> String -> a
+
+
+-- To that end, we use a library of "picklers" which are values describing serialization strategies
+
+
+-- string is a pickler allowing to encode a string
+s1 = pickle string "Hello World !"
+s = unpickle string s1
+
+
+-- We can combine those picklers
+
+n1 = pickle (pMaybe nat) (Just 98)
+on = unpickle (pMaybe nat) n1
+
+
+-- Each pickler handle one type
 type URL1 = (String, String, Maybe Int, String)
 type Bookmark1 = (String, URL1)
 type Bookmarks1 = [Bookmark1]
@@ -25,9 +81,6 @@ bookmarks1 = [ ("Andrew", ("http", "research.microsoft.com", Nothing,"users/aken
 
 b1 = pickle pbookmarks1 bookmarks1
 u1 = unpickle pbookmarks1 b1
-
-
-
 
 
 
@@ -186,4 +239,4 @@ l'    = S.unpickle slambda [] bitls
 --
 
 main :: IO ()
-main = someFunc
+main = putStrLn "Hello World"
