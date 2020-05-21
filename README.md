@@ -18,7 +18,7 @@ their required dependencies to packages, namely "pickler-combinators" library
 
 - .ghci give the settings to the interactive shell GCHI and GHCID (https://github.com/ndmitchell/ghcid)
 
-- stack.yaml gives access to availables packages
+- stack.yaml gives access to availables packages (aka lts-3.5 etc..)
 
 # Encoding and decoding
 
