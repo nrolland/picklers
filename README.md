@@ -203,8 +203,60 @@ ps : considering just their unpickling behaviour, `PU`, `lift` and `sequ` do mak
 
 
 
+
 ## Compression with state threading
 
-To encode with compression, we now need our picklers to describe not only "format" but "format with a state". 
+To encode with **compression**, we now need our picklers to describe not only "format" but "format with a state". 
+The type of this state is surfaced out in `PU a s`
+
+```haskell
+sequ :: (b->a) -> PU a s -> (a -> PU b s) -> PU b s
+sequ proj (PU enca deca) sel = PU encode' decode'
+        where
+            encode' (b,(cs,s)) = let a = proj b
+                                     (PU encb _) = sel a
+                                     -- we used the state s to encode a
+                                     -- we use the state s' to encode b
+                                     (cs'',s' ) = enca (a, (cs', s ))
+                                     (cs' ,s'') = encb (b, (cs , s')) 
+                                     -- we write b to cs
+                                     -- we write a to cs'
+                                  in (cs'',s'')                          
+             decode s = let (a,s') = deca s 
+                            (PU _ decb) = sel a
+                        in decb s'
+```
+
+
+This allows us to write a smarter function for serializing lists of things, when those can be compared for equality : This extra state is a "dictionary" of elements so far encoded
+
+
+```haskell
+add :: Eq a => a -> [a] -> [a]
+add x d = if elem x d then d else x:d
+
+memoFixedList :: Eq a => [a] -> PU a s -> Int {-size of the list-} -> PU [a] s
+memoFixedList dict pa 0 = lift []
+memoFixedList dict pa n = sequ head (tokenize dict pa) (\x ->  -- gets the head, encodes it, then enriches the association list
+                          sequ tail (memoFixedList (add x dict) pa (n-1)) (\xs ->
+                          lift (x:xs)))
+```
+
+
+`tokenize dict pa` yields back either a pickler for the current element if not already present in the dictionary or some fixed lookup as part of the format.
+
+
+```haskell
+tokenize :: Eq a => [a] -> PU a s -> PU a s
+tokenize dict p = sequ (\x -> case elem x dict 0 of   -- uses dictionary to know how to specialize
+                                Just i -> n-i ; Nothing -> 0)
+                  (zeroTo n)  -- encode n-i in the stream if found, otherwise 00
+                  (\i -> if i==0 then p else lift (dict !! (n-i))) -- eithers pickles, or adds the value as part of the format via lift
+  where n = length dict
+        elem :: Eq a => a -> [a] -> Int -> Maybe Int
+        elem k [] _ = Nothing
+        elem k (h:xs) i | k == h = Just i
+        elem k (_:xs) i          = elem k xs (i+1)
+```
 
 
