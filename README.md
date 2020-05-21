@@ -2,6 +2,8 @@
 
 Pickler combinators illustrated, as seen in A Kennedy's [paper](https://www.microsoft.com/en-us/research/publication/functional-pearl-pickler-combinators/)
 
+Those picklers are not only useful, but important as a first step and a simple example of more developed strategy of embedding/projection pairs
+
 
 `stack repl` to play with the exemple in `App/main.hs`
 
